@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "util.h"
 #include "byn2gtx.h"
 #include "byn.h"
 #include "gtx.h"
 
-#define DATUM_TYPE double
+#define DATUM_TYPE float
 
 void usage() {
 	printf("Usage: byn2gtx <input file> [output file]\n");
@@ -74,94 +75,87 @@ int byn2gtx(FILE* bfile, FILE* gfile) {
 	BynHeader bhdr;
 	GtxHeader ghdr;
 
+	// Read the byn header.
 	if((result = byn_read_header(bfile, &bhdr)) != 0) {
 		printf("Failed to read header (%d).\n", result);
 		return -2;
 	}
 
+	// Convert the byn header to a gtx header.
 	if((result = bynhdr2gtxhdr(&bhdr, &ghdr)) != 0) {
 		printf("Failed to convert header (%d).\n", result);
 		return -3;
 	}
 
+	// PRint the headers.
 	byn_print_header(&bhdr);
 	gtx_print_header(&ghdr);
 
+	// Write the gtx header to the file.
 	printf("Writing GTX Header\n");
-	GtxHeader g2;
-	g2.ll_lat = double_flip(ghdr.ll_lat);
-	g2.ll_lon = double_flip(ghdr.ll_lon);
-	g2.delta_lat = double_flip(ghdr.delta_lat);
-	g2.delta_lon = double_flip(ghdr.delta_lon);
-	g2.num_rows = int_flip(ghdr.num_rows);
-	g2.num_cols = int_flip(ghdr.num_cols);
-	if((result = fwrite(&g2, sizeof(GtxHeader), 1, gfile)) != 1) {
+	if((result = fwrite(&ghdr, sizeof(GtxHeader), 1, gfile)) != 1) {
 		printf("Failed to write GTX header.\n");
 		return -4;
 	}
 
-	if((result = fseek(bfile, sizeof(BynHeader), SEEK_SET)) != 0) {
-		printf("Failed to seek in BYN file (%d).\n", result);
-		return -5;
-	}
 	if((result = fseek(gfile, sizeof(GtxHeader), SEEK_SET)) != 0) {
 		printf("Failed to seek in GTX file (%d).\n", result);
 		return -6;
 	}
 
+
+
 	int r, c;
-	short srv;
-	int lrv;
-	float wv;
-	float l_undef = 9999.0 * bhdr.data_scaling_factor;
-	short s_undef = 32767;
-	printf("Writing data (%dx%d): ", ghdr.num_rows, ghdr.num_cols);
-	for(r=0;r<ghdr.num_rows;++r) {
-		if(r % 500 == 0) 
-			printf(".");
-		for(c=0;c<ghdr.num_cols;++c) {
-			if(bhdr.data_size == BYN_DATA_SIZE_SHORT) {
-				if((result = fread(&srv, sizeof(int), 1, bfile)) != 1) {
-					printf("Failed to read height from BYN file (%d).\n", result);
-					return -7;
-				}
-				if(srv == s_undef) {
-					wv = 0.0;
-				} else {
-					wv = float_flip((float) srv / bhdr.data_scaling_factor);
-				}
-				if((result = fwrite(&wv, sizeof(DATUM_TYPE), 1, gfile)) != 1) {
-					printf("Failed to write to GTX file (%d).\n", result);
-				}
-			} else if(bhdr.data_size == BYN_DATA_SIZE_LONG) {
-				if((result = fread(&lrv, sizeof(int), 1, bfile)) != 1) {
-					printf("Failed to read height from BYN file (%d).\n", result);
-					return -8;
-				}
-				wv = float_flip((float) lrv / bhdr.data_scaling_factor);
-				if(wv == l_undef) {
-					wv = 0.0;
-				} 
-				if((result = fwrite(&wv, sizeof(float), 1, gfile)) != 1) {
-					printf("Failed to write to GTX file (%d).\n", result);
-					return -9;
-				}
-			} else {
-				printf("Invalid data size: %d (%s)\n", bhdr.data_size, byn_data_size_str(bhdr.data_size));
-				return -11;
+	int rv;
+	DATUM_TYPE wv;
+	int datsize = bhdr.data_size == BYN_DATA_SIZE_SHORT ? 2 : 4;
+	int doflip = bhdr.byte_order == BYN_BYTE_ORDER_BE ? 1 : 0;
+	double scale = bhdr.data_scaling_factor;
+	int undef = datsize == 2 ? 32767 : 9999 ;
+	int rows = int_flip(ghdr.num_rows);
+	int cols = int_flip(ghdr.num_cols);
+	int counter = 0;
+	printf("Writing data (%dx%d): ", rows, cols);
+	// Loop over each gtx row.
+	for(r=rows-1;r>=0;--r) {
+			
+		// Last row first in GTX.
+		if((result = fseek(bfile, sizeof(BynHeader) + (r * cols * sizeof(DATUM_TYPE)), SEEK_SET)) != 0) {
+			printf("Failed to seek in BYN file (%d).\n", result);
+			return -5;
+		} 
+	
+		// Loop over each gtx column.
+		for(c=0;c<cols;++c) {
+			if((result = fread(&rv, datsize, 1, bfile)) != 1) {
+				printf("Failed to read height from BYN file (%d).\n", result);
+				return -7;
 			}
+			if(rv == undef) {
+				wv = -88.8888;
+			} else {
+				wv = (float) rv / scale;
+				if(doflip)
+					flip((char *) &wv, sizeof(DATUM_TYPE));
+			}
+			if((result = fwrite(&wv, sizeof(DATUM_TYPE), 1, gfile)) != 1) {
+				printf("Failed to write to GTX file (%d).\n", result);
+			}
+
+			if(++counter % 1000000 == 0) 
+				printf(".");
 		}
 	}
-	printf("\nDone.\n");
+	printf("\nDone (%d).\n", counter);
 	return 0;
 }
 
 int bynhdr2gtxhdr(BynHeader* bhdr, GtxHeader* ghdr) {
-	ghdr->ll_lat = (double) bhdr->south_boundary / 3600.0;
-	ghdr->ll_lon = (double) bhdr->west_boundary / 3600.0;
-	ghdr->delta_lat = (double) bhdr->ns_spacing / 3600.0;
-	ghdr->delta_lon = (double) bhdr->ew_spacing / 3600.0;
-	ghdr->num_cols = (int) ((bhdr->east_boundary - bhdr->west_boundary) / bhdr->ew_spacing);
-	ghdr->num_rows = (int) ((bhdr->north_boundary - bhdr->south_boundary) / bhdr->ns_spacing);
+	ghdr->num_cols = int_flip((int) ceil((bhdr->east_boundary - bhdr->west_boundary) / bhdr->ew_spacing) + 1);
+	ghdr->num_rows = int_flip((int) ceil((bhdr->north_boundary - bhdr->south_boundary) / bhdr->ns_spacing) + 1);
+	ghdr->ll_lat = double_flip((double) bhdr->south_boundary / 3600.0);
+	ghdr->ll_lon = double_flip((double) bhdr->west_boundary / 3600.0);
+	ghdr->delta_lat = double_flip((double) bhdr->ns_spacing / 3600.0);
+	ghdr->delta_lon = double_flip((double) bhdr->ew_spacing / 3600.0);
 	return 0;
 }

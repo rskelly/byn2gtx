@@ -14,6 +14,9 @@ int gtx_read_header(FILE* f, GtxHeader* hdr) {
 	return 0;
 }
 
+double _double_flip(double d) { return d; }
+int _int_flip(int d) { return d; }
+
 int gtx_print_header(GtxHeader* hdr) {
 	printf("Printing GTX Header\n");
 	printf("------------------------------------------\n");

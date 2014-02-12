@@ -9,4 +9,7 @@ int int_flip(int);
 
 short short_flip(short);
 
+void flip_noop(char*, int);
+void flip(char*, int);
+
 #endif
