@@ -1,0 +1,53 @@
+#include <liblas/liblas.hpp>
+#include <fstream>
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+
+using namespace std;
+using namespace liblas;
+
+int main(int argc, char** argv) {
+	
+	if(argc < 2) {
+		cout << "File name(s) required.\n";
+		return -1;
+	}		
+
+	// Get an array of the files.
+	char* files[argc-1];
+	for(int i=1;i<argc;++i)
+		files[i-1] = argv[i];
+		
+	// We don't want scientific notation in the output stream.
+	cout.setf(ios::fixed);
+
+	int samples = 20;
+	int sampleIndices[samples];
+	 
+	ifstream ifs;
+	ifs.open(argv[1], ios::in|ios::binary);
+	
+	ReaderFactory f;
+	liblas::Reader r = f.CreateWithStream(ifs);
+	
+	Header const& header = r.GetHeader();
+	int count = header.GetPointRecordsCount();
+
+	cout << "x,y,z\n";
+
+	srand(time(NULL));
+
+	int max = 10;
+	int indices[max];
+	int rnd;
+	Point p;
+	for(int i=0;i<max;++i) {
+		rnd = rand() % count;
+		r.ReadPointAt(rnd);
+		p = r.GetPoint();
+		cout << p.GetX() << "," << p.GetY() << "," << p.GetZ() << '\n';
+	} 
+
+	ifs.close();
+}

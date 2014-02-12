@@ -1,64 +1,69 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "util.h"
 #include "byn2gtx.h"
 #include "byn.h"
 #include "gtx.h"
 
+#define DATUM_TYPE double
+
 void usage() {
-	printf("Usage: byn2gtx <input file> <output file>\n");
+	printf("Usage: byn2gtx <input file> [output file]\n");
+	printf("  If one file is given, the header is printed.\n");
+	printf("  If two files are given, the input file is converted and written as the output file.\n");
 }
 
 int main(int argc, char** argv) {	
-	char* input_file;
-	char* output_file;
+	
+	if(argc < 2) {
+		printf("Error: Too few arguments.\n");
+		usage();
+		return -1;
+	}
+
+	char* input_file = 0;
+	char* output_file = 0;
 	FILE* f = 0;
 	FILE* g = 0;
 	int result;
-	
-	if(argc < 3) {
-		printf("Error: Too few arguments.\n");
-		usage();
-		result = -1;
-		goto finish;
-	}
-
-	if(strlen(argv[1]) < 1 || strlen(argv[2]) < 2) {
-		printf("Two non-zero length arguments are required.\n");
-		usage();
-		result = -1;
-		goto finish;
-	}
-
-	BynHeader bhdr;
-	GtxHeader ghdr;
-
 
 	input_file = argv[1];
-	output_file = argv[2];
+	if(argc >= 3)
+		output_file = argv[2];
+	
 	printf("Opening file for reading: %s\n", input_file);
 	if((f = fopen(input_file, "rb")) == 0) {
 		perror("Failed to open file:");
-		result = -1;
-		goto finish;
-	}
-	
-	printf("Opening file for writing: %s\n", output_file);
-	if((g = fopen(output_file, "wb")) == 0) {
-		perror("Failed to open file:");
-		result = -2;
-		goto finish;
+		return -1;
 	}
 
-	byn2gtx(f, g);
+	if(output_file != 0 && strlen(output_file) > 0) {	
+		printf("Opening file for writing: %s\n", output_file);
+		if((g = fopen(output_file, "wb")) == 0) {
+			perror("Failed to open file:");
+			fclose(f);
+			return -1;
+		}
+		byn2gtx(f, g);
+	} else {
+		char* p = strrchr(input_file, '.');
+		if(p && !strcmp(p, ".byn")) {
+			BynHeader bhdr;
+			byn_read_header(f, &bhdr);
+			byn_print_header(&bhdr);
+		} else if(p && !strcmp(p, ".gtx")) {
+			GtxHeader ghdr;
+			gtx_read_header(f, &ghdr);
+			gtx_print_header(&ghdr);
+		}
+	}
 
-finish:
 	if(f != 0)
 		fclose(f);
 	if(g != 0)
 		fclose(g);
-	return result;
-
+	return 0;
 }
 
 int byn2gtx(FILE* bfile, FILE* gfile) {
@@ -83,7 +88,14 @@ int byn2gtx(FILE* bfile, FILE* gfile) {
 	gtx_print_header(&ghdr);
 
 	printf("Writing GTX Header\n");
-	if((result = fwrite(&ghdr, sizeof(GtxHeader), 1, gfile)) != 1) {
+	GtxHeader g2;
+	g2.ll_lat = double_flip(ghdr.ll_lat);
+	g2.ll_lon = double_flip(ghdr.ll_lon);
+	g2.delta_lat = double_flip(ghdr.delta_lat);
+	g2.delta_lon = double_flip(ghdr.delta_lon);
+	g2.num_rows = int_flip(ghdr.num_rows);
+	g2.num_cols = int_flip(ghdr.num_cols);
+	if((result = fwrite(&g2, sizeof(GtxHeader), 1, gfile)) != 1) {
 		printf("Failed to write GTX header.\n");
 		return -4;
 	}
@@ -116,9 +128,9 @@ int byn2gtx(FILE* bfile, FILE* gfile) {
 				if(srv == s_undef) {
 					wv = 0.0;
 				} else {
-					wv = (float) srv / bhdr.data_scaling_factor;
+					wv = float_flip((float) srv / bhdr.data_scaling_factor);
 				}
-				if((result = fwrite(&wv, sizeof(float), 1, gfile)) != 1) {
+				if((result = fwrite(&wv, sizeof(DATUM_TYPE), 1, gfile)) != 1) {
 					printf("Failed to write to GTX file (%d).\n", result);
 				}
 			} else if(bhdr.data_size == BYN_DATA_SIZE_LONG) {
@@ -126,7 +138,7 @@ int byn2gtx(FILE* bfile, FILE* gfile) {
 					printf("Failed to read height from BYN file (%d).\n", result);
 					return -8;
 				}
-				wv = (float) lrv / bhdr.data_scaling_factor;
+				wv = float_flip((float) lrv / bhdr.data_scaling_factor);
 				if(wv == l_undef) {
 					wv = 0.0;
 				} 

@@ -5,6 +5,8 @@ int byn_read_header(FILE* f, BynHeader* hdr) {
 	int read;
 	int size;
 	size = sizeof(BynHeader);
+	if(fseek(f, 0, SEEK_SET) != 0)
+		return -1;
 	read = fread(hdr, 1, size, f);
 	if(read != size)
 		return -1;

@@ -11,6 +11,7 @@ typedef struct {
 } GtxHeader;
 
 int gtx_print_header(GtxHeader*);
+int gtx_read_header(FILE*, GtxHeader*);
 
 #endif
 
