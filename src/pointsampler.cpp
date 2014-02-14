@@ -8,6 +8,9 @@ using namespace std;
 using namespace liblas;
 
 #define SAMPLES 20
+// If STEP is 0, a random index will be used to select points,
+// otherwise a point is selected every count/SAMPLES places.
+#define STEP 1
 
 /**
  * Returns the number of points in a las file.
@@ -58,11 +61,11 @@ int main(int argc, char** argv) {
 	// each sample (because it'll come from the same place in each of the
 	// given files).
 	int sampleIndices[SAMPLES];
-	int rnd;
+	int rnd = 0;
 	int count = get_num_points(files[0]);
 	// Get a bunch of random indices.
 	for(i=0;i<SAMPLES;++i) {
-		rnd = rand() % count;
+		rnd = !STEP ? rand() % count : rnd + (int) (count/SAMPLES);
 		sampleIndices[i] = rnd;
 	}
 
