@@ -9,6 +9,7 @@ This tool converts them to the gtx format usable by proj4.
 
 To convert a file, invoke:
 
-./byn2gtx <byn file> <gtx file>
+./byn2gtx CGG2013n83.byn CGG2013n83.gtx
+>
 
 
