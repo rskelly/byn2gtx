@@ -6,14 +6,14 @@ int byn_read_header(FILE* f, BynHeader* hdr) {
 	int size;
 	size = sizeof(BynHeader);
 	if(fseek(f, 0, SEEK_SET) != 0)
-		return -1;
+		return 0;
 	read = fread(hdr, 1, size, f);
 	if(read != size)
-		return -1;
-	return 0;
+		return 0;
+	return 1;
 }
 
-int byn_print_header(BynHeader* hdr) {
+void byn_print_header(BynHeader* hdr) {
 	printf("Printing BYN Header\n");
 	printf("------------------------------------------\n");
 	printf("  Boundaries (NSWE):    %d, %d, %d, %d\n", hdr->north_boundary, hdr->south_boundary, hdr->west_boundary, hdr->east_boundary);
@@ -43,7 +43,9 @@ char* byn_boundaries_scaled_str(short v) {
 	switch(v) {
 		case BYN_BOUNDARY_NOSCALE: return "not scaled";
 		case BYN_BOUNDARY_SCALED: return "scaled";
-		default: return "invalid";
+		default: 
+			printf("%d", v);
+			return "invalid";
 	}
 }
 

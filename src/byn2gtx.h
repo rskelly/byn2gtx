@@ -7,12 +7,18 @@
 
 /**
  * Writes a BYN file to a GTX file.
- * @param FILE* The byn file.
- * @param FILE* The gtx file.
- * @returns 0 on success.
+ * @param The byn file.
+ * @param The gtx file.
+ * @returns 1 on success, 0 on failure.
  */
 int byn2gtx(FILE*, FILE*);
 
+/**
+ * Writes the contents of the BynHeader into the GtxHeader.
+ * @param A pointer to a BynHeader.
+ * @param A pointer to a GtxHeader.
+ * @return1 1 on success, 0 on failure.
+ */
 int bynhdr2gtxhdr(BynHeader*, GtxHeader*);
 
 #endif

@@ -21,6 +21,7 @@ short short_flip(short v) {
 }
 
 void flip_noop(char* f, int len) { }
+
 void flip(char* f, int len) {
 	char t;
 	int i;

@@ -1,3 +1,6 @@
 data/*
 bin/*
 *~
+.DS_Store
+Doxyfile
+
