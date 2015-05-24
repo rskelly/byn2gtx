@@ -31,10 +31,6 @@ int main(int argc, char** argv) {
 		goto finish;
 	}
 
-	BynHeader bhdr;
-	GtxHeader ghdr;
-
-
 	input_file = argv[1];
 	output_file = argv[2];
 	printf("Opening file for reading: %s\n", input_file);

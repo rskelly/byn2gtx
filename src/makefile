@@ -10,4 +10,4 @@ pointsampler:
 	g++ -I/usr/local/include -I/opt/local/include -L/usr/local/lib pointsampler.cpp -llas -o ../bin/pointsampler
 
 clean:
-	rm -f *.o ../bin/byn2gtx
+	rm -f *.o ../bin/byn2gtx ../bin/neggtx ../bin/pointsampler
