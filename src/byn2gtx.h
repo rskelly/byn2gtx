@@ -17,8 +17,7 @@ int byn2gtx(FILE*, FILE*);
  * Writes the contents of the BynHeader into the GtxHeader.
  * @param A pointer to a BynHeader.
  * @param A pointer to a GtxHeader.
- * @return1 1 on success, 0 on failure.
  */
-int bynhdr2gtxhdr(BynHeader*, GtxHeader*);
+void bynhdr2gtxhdr(BynHeader*, GtxHeader*);
 
 #endif

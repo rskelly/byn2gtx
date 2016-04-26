@@ -35,8 +35,7 @@
 /**
  * Contains information about the BYN file.
  */
-typedef struct {
-	//@{
+typedef struct __attribute__((__packed__)) {
 	/**
 	 * These properties define the geographic boundaries
 	 * of the BYN file.
@@ -45,27 +44,26 @@ typedef struct {
 	int north_boundary;
 	int west_boundary;
 	int east_boundary;
-	//@}
-	//@{
 	/**
 	 * These properties give the scale factor
 	 * for the boundaries.
 	 */
 	short ns_spacing;
 	short ew_spacing;
-	//@}
 	/** The model type (local or global) of the BYN file. */
 	short model_type;
 	/** The data type of the BYN file. */
 	short data_type;
 	/** The data scaling factor of the BYN file. */
 	double data_scaling_factor;
-	/** The data size (4 or 8) of the BYN file. */
+	/** The data size (2 or 4) of the BYN file. */
 	short data_size;
-	/** The standard deviation of values in the BYN file. */
-	short std_dev;
-	/** The scaling factor for the standard deviation. */
-	double std_dev_scaling_factor;
+	/** Spare slots. */
+	char spare1[6];
+	/** Data description. */
+	short data_desc;
+	/* Data sub-type. */
+	short sub_type;
 	/** The datum used by the BYN file (ITRF or NAD83). */
 	short datum;
 	/** The ellipsoid used by the BYN file. */
@@ -74,8 +72,15 @@ typedef struct {
 	short byte_order;
 	/** Indicates whether the boundaries are scaled. */
 	short boundaries_scaled;
-	/** Reserved. */
-	char reserved;
+
+	double Wo;
+	double gm;
+	short tide_system;
+	short ref_realization;
+	float epoch;
+	short pt_type;
+	short spare2;
+
 } BynHeader;
 
 /**

@@ -22,12 +22,16 @@ void byn_print_header(BynHeader* hdr) {
 	printf("  Data Type:            %s \n", byn_data_type_str(hdr->data_type));
 	printf("  Scaling Factor:       %f \n", hdr->data_scaling_factor);
 	printf("  Data Size:            %s\n", byn_data_size_str(hdr->data_size));	
-	printf("  Standard Deviation:   %d\n", hdr->std_dev);
-	printf("  StdDev. Scale Factor: %f\n", hdr->std_dev_scaling_factor);
 	printf("  Datum:                %s\n", byn_datum_str(hdr->datum));
 	printf("  Ellipsoid:            %s\n", byn_ellipsoid_str(hdr->ellipsoid));
 	printf("  Byte Order:           %s\n", byn_byte_order_str(hdr->byte_order));
 	printf("  Scale for Boundaries: %s\n", byn_boundaries_scaled_str(hdr->boundaries_scaled));
+	printf("  Geopotential Wo:      %f\n", hdr->Wo);
+	printf("  GM:                   %f\n", hdr->gm);
+	printf("  Tide System:          %d\n", hdr->tide_system);
+	printf("  Ref Realization:      %d\n", hdr->ref_realization);
+	printf("  Epoch:                %f\n", hdr->epoch);
+	printf("  Point Type:           %d\n", hdr->pt_type);
 	printf("------------------------------------------\n");
 }
 

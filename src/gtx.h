@@ -4,23 +4,21 @@
 /**
  * Contains information about the GTX file.
  */
-typedef struct {
-	//@{
+typedef struct __attribute__((__packed__)) {
 	/** 
 	 * These properties define the coordinates
 	 * of the lower-left corner of the region.
 	 */
 	double ll_lat;
 	double ll_lon;
-	//@}
-	//@{
+
 	/**
 	 * These properties define the north-south
 	 * and east-west span of the region.
 	 */
 	double delta_lat;
 	double delta_lon;
-	//@}
+
 	/**
 	 * Number of rows in the grid.
 	 */
