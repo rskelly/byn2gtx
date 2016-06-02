@@ -12,11 +12,4 @@ To convert a file, invoke:
     ./byn2gtx CGG2013n83.byn CGG2013n83.gtx
 
 
-# Testing
-
-You can test the results of a LAS vertical datum transformation (using liblas' [las2las](http://www.liblas.org/utilities/las2las.html) program, for example) by running
-
-    ./pointsampler file.las file_transformed.las
-
-This will perform a random sampling of the the same locations in both files, which you can then check against the results from [GPS-H](http://webapp.geod.nrcan.gc.ca/geod/tools-outils/gpsh.php?locale=en).
 
