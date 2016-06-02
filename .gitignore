@@ -1,3 +1,6 @@
+src/byn2gtx
+src/.deps
+autom4te.cache
 data/*
 bin/*
 *~
